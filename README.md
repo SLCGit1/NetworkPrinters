@@ -22,7 +22,7 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 ## 🔧 Arguments![Uploading NetworkPrinter.PNG…]()
 
 
->> ⚠️ Update the printer server address:  $printServerAddress
+>> ⚠️ Update the printer server address:  $printServerAddress with FQDN
 
 ---
 
@@ -142,6 +142,7 @@ Displays a summary pop-up (in the foreground) with a count of installed, skipped
 - ✅ Administrator privileges for printer modification
 - 🚫 Cannot install printers as a standard (non-admin) user — required permissions for Add-Printer, Remove-Printer, and PrintUIEntry
 - ✅ If using Task Scheduler, configure to run at logon with appropriate permissions
+- ✅ Update the printer server address:  $printServerAddress with FQDN
 
 ---
 
