@@ -16,7 +16,11 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 
 ---
 
-## 🔧 Arguments
+![NetworkPrinter](https://github.com/user-attachments/assets/6aa2ac6d-f9f6-484f-810e-ea4b2aef0d44)
+
+
+## 🔧 Arguments![Uploading NetworkPrinter.PNG…]()
+
 
 | Switch            | Description                                                          |
 | ----------------- | -------------------------------------------------------------------- |
