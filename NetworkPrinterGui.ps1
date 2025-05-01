@@ -26,7 +26,7 @@ param (
 )
 
 # Configuration
-$printServerAddress = "vm-printq.admin.slc.edu"
+$printServerAddress = "YourPrinterServerAddress"
 $logFile = "$env:TEMP\PrinterInstallLog.txt"
 
 # Function to log messages to file and output
