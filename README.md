@@ -3,7 +3,7 @@
 
 ## 📋 Overview
 
-`NetworkPrinterGui.ps1` is a PowerShell script that allows for interactive or silent deployment of shared printers from a central print server. It supports:
+`NetworkPrinterGui.ps1` is a PowerShell script that allows for interactive or silent deployment of shared printers from a central print server. The script will check what printer the use have access to and also check if the printer has been installed already. It supports:
 
 - 🖨️ Silent background installation
 - 🖥️ GUI with optional auto-install
