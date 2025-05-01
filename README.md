@@ -22,6 +22,10 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 ## 🔧 Arguments![Uploading NetworkPrinter.PNG…]()
 
 
+>> ⚠️ Update the printer server address:  $printServerAddress
+
+---
+
 | Switch            | Description                                                          |
 | ----------------- | -------------------------------------------------------------------- |
 | `-Silent`         | Installs all non-installed printers silently (no GUI)                |
