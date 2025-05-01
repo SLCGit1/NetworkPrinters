@@ -26,7 +26,7 @@ param (
 )
 
 # Configuration
-$printServerAddress = "YourPrinterServerAddress"
+$printServerAddress = "YourPrinterServerFQDN_Address"
 $logFile = "$env:TEMP\PrinterInstallLog.txt"
 
 # Function to log messages to file and output
