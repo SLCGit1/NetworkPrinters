@@ -1,17 +1,22 @@
 # Network Printer Installer Script
 #
-#Create by Jesus Ayala Sarah Lawrence College
+# Typically used by our Help Desk team when working on a user’s desktop, especially when the user is unsure which network printers they have access to.
+# Also useful in environments where network printers are not automatically added for users.
 #
-# Supports GUI and silent operation with optional auto-install and visibility of installed printers
+# Created by Jesus Ayala, Sarah Lawrence College
+#
+# Supports GUI and silent operation with optional auto-install and visibility of installed printers.
+#
 # Arguments:
 #   -Silent         : Runs in CLI mode without GUI and installs all new printers
 #   -AutoInstall    : GUI launches and automatically installs all listed printers
 #   -ShowAll        : GUI includes already installed printers in the list (unchecked by default)
-#   -ForceReinstall : Reinstalls even if printer is already installed
+#   -ForceReinstall : Reinstalls printers even if already installed
 #
-# Please update $printServerAddress under Configuration to your print server address.
+# Please update $printServerAddress under the Configuration section to match your print server address.
 #
-# DISCLAIMER: Please test this script in a controlled environment before production use.
+# DISCLAIMER: Please test this script in a controlled environment before deploying it to production.
+
 
 param (
     [switch]$Silent,
