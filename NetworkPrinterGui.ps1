@@ -1,32 +1,27 @@
 # Network Printer Installer Script
 #
-# Typically used by our Help Desk team when working on a user’s desktop, especially when the user is unsure which network printers they have access to.
-# Also useful in environments where network printers are not automatically added for users.
+#Create by Jesus Ayala Sarah Lawrence College
 #
-# Created by Jesus Ayala, Sarah Lawrence College
-#
-# Supports GUI and silent operation with optional auto-install and visibility of installed printers.
-#
+# Supports GUI and silent operation with optional auto-install and visibility of installed printers
 # Arguments:
 #   -Silent         : Runs in CLI mode without GUI and installs all new printers
 #   -AutoInstall    : GUI launches and automatically installs all listed printers
 #   -ShowAll        : GUI includes already installed printers in the list (unchecked by default)
-#   -ForceReinstall : Reinstalls printers even if already installed
+#   -ForceReinstall : Reinstalls even if printer is already installed
+#   -PrintServer    : Optional override for the print server address (default: vm-printq.admin.slc.edu)
 #
-# Please update $printServerAddress under the Configuration section to match your print server address.
-#
-# DISCLAIMER: Please test this script in a controlled environment before deploying it to production.
-
+# DISCLAIMER: Please test this script in a controlled environment before production use.
 
 param (
     [switch]$Silent,
     [switch]$AutoInstall,
     [switch]$ShowAll,
-    [switch]$ForceReinstall
+    [switch]$ForceReinstall,
+    [string]$PrintServer = "printq.admin.slc.edu"
 )
 
 # Configuration
-$printServerAddress = "YourPrinterServerFQDN_Address"
+$printServerAddress = $PrintServer
 $logFile = "$env:TEMP\PrinterInstallLog.txt"
 
 # Function to log messages to file and output
