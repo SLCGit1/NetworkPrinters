@@ -19,7 +19,7 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 ![NetworkPrinter](https://github.com/user-attachments/assets/6aa2ac6d-f9f6-484f-810e-ea4b2aef0d44)
 
 
-## 🔧 Arguments![Uploading NetworkPrinter.PNG…]()
+## 🔧 Arguments
 
 
 >> ⚠️ Update the printer server address:  $printServerAddress with FQDN
