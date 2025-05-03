@@ -32,6 +32,7 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 | `-AutoInstall`    | GUI launches and auto-installs all listed printers                   |
 | `-ShowAll`        | GUI includes already installed printers (unchecked by default)       |
 | `-ForceReinstall` | Forces reinstallation of already installed printers                  |
+| `-PrintServer`    | Optional override for the print server address PrinterServerFQDN_Add |
 
 ---
 
@@ -55,6 +56,9 @@ powershell.exe -File .\NetworkPrinterGui.ps1 -Silent -ForceReinstall
 
 # Launch full GUI with all printers shown and reinstallation allowed
 powershell.exe -File .\NetworkPrinterGui.ps1 -ShowAll -ForceReinstall
+
+# Launch Optional override for the print server address PrinterServerFQDN_Add
+powershell.exe -File .\NetworkPrinterGui.ps1 -PrintServer YourprintServerAddress
 ```
 
 ---
