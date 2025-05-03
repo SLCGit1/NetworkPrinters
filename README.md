@@ -12,7 +12,7 @@
 
 Printers are compared using their UNC connection path (e.g., `\\print-server\PrinterName`) to determine if they are already installed. By default, only new/uninstalled printers are shown in the GUI unless the `-ShowAll` switch is used.
 
-> ⚠️ **Disclaimer**: Use this script at your own risk. Test thoroughly in a staging environment before production deployment.
+> ⚠️ **Disclaimer**: Use this script at your own risk. Test thoroughly in a staging environment before production deployment. Depending on how many printer you have it might take some time to show.
 
 ---
 
