@@ -1,6 +1,7 @@
 # Network Printer Installer Script
 #
-#Create by Jesus Ayala Sarah Lawrence College
+# Created by Jesus Ayala Sarah Lawrence College
+# Modified to work with PS2EXE
 #
 # Supports GUI and silent operation with optional auto-install and visibility of installed printers
 # Arguments:
@@ -8,17 +9,37 @@
 #   -AutoInstall    : GUI launches and automatically installs all listed printers
 #   -ShowAll        : GUI includes already installed printers in the list (unchecked by default)
 #   -ForceReinstall : Reinstalls even if printer is already installed
-#   -PrintServer    : Optional override for the print server address (default: vm-printq.admin.slc.edu)
+#   -PrintServer    : Optional override for the print server address (default: $PrintServer = "PrintServerFQDN")
 #
 # DISCLAIMER: Please test this script in a controlled environment before production use.
 
+# Regular PowerShell parameter handling
 param (
-    [switch]$Silent,
-    [switch]$AutoInstall,
-    [switch]$ShowAll,
-    [switch]$ForceReinstall,
-    [string]$PrintServer = "printq.admin.slc.edu"
+    [switch]$Silent = $false,
+    [switch]$AutoInstall = $false,
+    [switch]$ShowAll = $false,
+    [switch]$ForceReinstall = $false,
+    [string]$PrintServer = "PrintServerFQDN"
 )
+
+# PS2EXE compatibility - handle arguments when compiled as EXE
+if ($MyInvocation.Line -match '\.exe') {
+    # We're running as a compiled EXE - need to parse args differently
+    $argList = $args
+    
+    # Convert positional args to named parameters
+    $Silent = $argList -contains "-Silent"
+    $AutoInstall = $argList -contains "-AutoInstall"
+    $ShowAll = $argList -contains "-ShowAll"
+    $ForceReinstall = $argList -contains "-ForceReinstall"
+    
+    # Handle the PrintServer parameter which requires a value
+    $PrintServerIndex = [array]::IndexOf($argList, "-PrintServer")
+    if ($PrintServerIndex -ge 0 -and $PrintServerIndex -lt $argList.Count - 1) {
+        $PrintServer = $argList[$PrintServerIndex + 1]
+    }
+    # No else clause - keeps the value from the param() block
+}
 
 # Configuration
 $printServerAddress = $PrintServer
@@ -30,6 +51,14 @@ function Log-Message {
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'u') - $message"
     Write-Output $message
 }
+
+# Log startup and parameters
+Log-Message "Script started with parameters:"
+Log-Message "Silent: $Silent"
+Log-Message "AutoInstall: $AutoInstall"
+Log-Message "ShowAll: $ShowAll"
+Log-Message "ForceReinstall: $ForceReinstall"
+Log-Message "PrintServer: $printServerAddress"
 
 # Installs the provided list of printers
 function Install-PrinterList {
@@ -154,6 +183,13 @@ $label.Location = New-Object System.Drawing.Point(10, 10)
 $label.Size = New-Object System.Drawing.Size(580, 40)
 $label.Text = if ($ShowAll) { "Select printers to install (all shown)." } else { "Select printers to install (installed printers are hidden)." }
 $form.Controls.Add($label)
+
+# Add server info label (for debugging)
+$serverLabel = New-Object System.Windows.Forms.Label
+$serverLabel.Location = New-Object System.Drawing.Point(10, 450)
+$serverLabel.Size = New-Object System.Drawing.Size(580, 20)
+$serverLabel.Text = "Print Server: $printServerAddress"
+$form.Controls.Add($serverLabel)
 
 # List view for available printers
 $listView = New-Object System.Windows.Forms.ListView
