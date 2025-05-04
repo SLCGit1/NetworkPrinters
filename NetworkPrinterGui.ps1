@@ -1,7 +1,7 @@
 # Network Printer Installer Script
 #
 # Created by Jesus Ayala Sarah Lawrence College
-# Modified to work with PS2EXE
+# Modified to work with PS2EXE the script can be convert into an .exe .
 #
 # Supports GUI and silent operation with optional auto-install and visibility of installed printers
 # Arguments:
