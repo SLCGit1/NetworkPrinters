@@ -1,7 +1,8 @@
 # Network Printer Installer Script
 #
 # Created by Jesus Ayala Sarah Lawrence College
-# Modified to work with PS2EXE the script can be convert into an .exe .
+# Modified to work with PS2EXE the script can be convert into an .exe and exit out if no print server connected.
+# version: 6.0
 #
 # Supports GUI and silent operation with optional auto-install and visibility of installed printers
 # Arguments:
@@ -13,6 +14,7 @@
 #
 # DISCLAIMER: Please test this script in a controlled environment before production use.
 
+
 # Regular PowerShell parameter handling
 param (
     [switch]$Silent = $false,
@@ -21,6 +23,7 @@ param (
     [switch]$ForceReinstall = $false,
     [string]$PrintServer = "PrintServerFQDN"
 )
+
 
 # PS2EXE compatibility - handle arguments when compiled as EXE
 if ($MyInvocation.Line -match '\.exe') {
@@ -41,9 +44,11 @@ if ($MyInvocation.Line -match '\.exe') {
     # No else clause - keeps the value from the param() block
 }
 
+
 # Configuration
 $printServerAddress = $PrintServer
 $logFile = "$env:TEMP\PrinterInstallLog.txt"
+
 
 # Function to log messages to file and output
 function Log-Message {
@@ -51,6 +56,26 @@ function Log-Message {
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'u') - $message"
     Write-Output $message
 }
+
+
+# Function to check print server connection
+function Test-PrintServerConnection {
+    param ([string]$serverAddress)
+    try {
+        $pingResult = Test-Connection -ComputerName $serverAddress -Count 1 -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+
+# Check print server connection
+if (-not (Test-PrintServerConnection -serverAddress $PrintServer)) {
+    Log-Message "ERROR: Unable to connect to print server $PrintServer. Exiting script."
+    exit 1
+}
+
 
 # Log startup and parameters
 Log-Message "Script started with parameters:"
@@ -60,22 +85,27 @@ Log-Message "ShowAll: $ShowAll"
 Log-Message "ForceReinstall: $ForceReinstall"
 Log-Message "PrintServer: $printServerAddress"
 
+
 # Installs the provided list of printers
 function Install-PrinterList {
     param ([string[]]$printerNames)
+
 
     $printServer = $printServerAddress
     # List of currently installed printer connections
     $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
     Log-Message "Installed Connections: $($installedConnections -join ', ')"
 
+
     $installedCount = 0
     $skippedCount = 0
     $failedCount = 0
 
+
     foreach ($printerName in $printerNames) {
         $printerPath = "\\$printServer\$printerName"
         Log-Message "CMD: rundll32.exe printui.dll,PrintUIEntry /in /n$printerPath"
+
 
         if ($installedConnections -contains $printerPath) {
             if ($ForceReinstall) {
@@ -95,10 +125,12 @@ function Install-PrinterList {
             }
         }
 
+
         try {
             $process = Start-Process -FilePath "rundll32.exe" `
                                      -ArgumentList @("printui.dll,PrintUIEntry", "/in", "/n$printerPath") `
                                      -Wait -PassThru -NoNewWindow
+
 
             if ($process.ExitCode -eq 0) {
                 Log-Message "INSTALLED: $printerName"
@@ -112,22 +144,26 @@ function Install-PrinterList {
         }
     }
 
+
     # Summary pop-up
     Log-Message "`nSummary:"
     Log-Message "Installed: $installedCount"
     Log-Message "Skipped : $skippedCount"
     Log-Message "Failed  : $failedCount"
 
+
     $summaryForm = New-Object System.Windows.Forms.Form
     $summaryForm.Text = "Installation Summary"
     $summaryForm.Size = New-Object System.Drawing.Size(300,150)
     $summaryForm.StartPosition = "CenterScreen"
+
 
     $summaryLabel = New-Object System.Windows.Forms.Label
     $summaryLabel.AutoSize = $true
     $summaryLabel.Location = New-Object System.Drawing.Point(20, 20)
     $summaryLabel.Text = "Installed: $installedCount`nSkipped: $skippedCount`nFailed: $failedCount"
     $summaryForm.Controls.Add($summaryLabel)
+
 
     $okButton = New-Object System.Windows.Forms.Button
     $okButton.Text = "OK"
@@ -136,15 +172,18 @@ function Install-PrinterList {
     $okButton.Add_Click({ $summaryForm.Close() })
     $summaryForm.Controls.Add($okButton)
 
+
     $summaryForm.TopMost = $true
     $summaryForm.ShowDialog()
 }
+
 
 # Retrieves shared printers from the print server not already installed
 function Get-UniqueSharedPrinters {
     $printServer = $printServerAddress
     $allPrinters = Get-Printer -ComputerName $printServer | Where-Object { $_.Shared -eq $true -and $_.ShareName } | Sort-Object -Property ShareName -Unique
     $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
+
 
     $uniquePrinters = @()
     foreach ($printer in $allPrinters) {
@@ -154,6 +193,7 @@ function Get-UniqueSharedPrinters {
     }
     return $uniquePrinters
 }
+
 
 # Silent mode execution
 if ($Silent) {
@@ -167,15 +207,18 @@ if ($Silent) {
     exit 0
 }
 
+
 # GUI Setup
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Network Printer Installer"
 $form.Size = New-Object System.Drawing.Size(600, 560)
 $form.StartPosition = "CenterScreen"
 $form.Topmost = $true
+
 
 # Instruction label
 $label = New-Object System.Windows.Forms.Label
@@ -184,6 +227,7 @@ $label.Size = New-Object System.Drawing.Size(580, 40)
 $label.Text = if ($ShowAll) { "Select printers to install (all shown)." } else { "Select printers to install (installed printers are hidden)." }
 $form.Controls.Add($label)
 
+
 # Add server info label (for debugging)
 $serverLabel = New-Object System.Windows.Forms.Label
 $serverLabel.Location = New-Object System.Drawing.Point(10, 450)
@@ -191,17 +235,22 @@ $serverLabel.Size = New-Object System.Drawing.Size(580, 20)
 $serverLabel.Text = "Print Server: $printServerAddress"
 $form.Controls.Add($serverLabel)
 
+
 # List view for available printers
 $listView = New-Object System.Windows.Forms.ListView
 $listView.Location = New-Object System.Drawing.Point(10, 50)
 $listView.Size = New-Object System.Drawing.Size(560, 300)
 $listView.View = 'Details'
+$listView.Check
+
+
 $listView.CheckBoxes = $true
 $listView.FullRowSelect = $true
 $listView.GridLines = $true
 $listView.Columns.Add("Printer Share Name", 250)
 $listView.Columns.Add("Location", 290)
 $form.Controls.Add($listView)
+
 
 # Action buttons
 $selectAllButton = New-Object System.Windows.Forms.Button
@@ -210,11 +259,13 @@ $selectAllButton.Size = New-Object System.Drawing.Size(100, 30)
 $selectAllButton.Text = "Select All"
 $form.Controls.Add($selectAllButton)
 
+
 $unselectAllButton = New-Object System.Windows.Forms.Button
 $unselectAllButton.Location = New-Object System.Drawing.Point(120, 360)
 $unselectAllButton.Size = New-Object System.Drawing.Size(100, 30)
 $unselectAllButton.Text = "Unselect All"
 $form.Controls.Add($unselectAllButton)
+
 
 $installButton = New-Object System.Windows.Forms.Button
 $installButton.Location = New-Object System.Drawing.Point(230, 360)
@@ -222,11 +273,13 @@ $installButton.Size = New-Object System.Drawing.Size(150, 30)
 $installButton.Text = "Install Selected"
 $form.Controls.Add($installButton)
 
+
 $exitButton = New-Object System.Windows.Forms.Button
 $exitButton.Location = New-Object System.Drawing.Point(390, 360)
 $exitButton.Size = New-Object System.Drawing.Size(80, 30)
 $exitButton.Text = "Exit"
 $form.Controls.Add($exitButton)
+
 
 # Progress and status
 $progressBar = New-Object System.Windows.Forms.ProgressBar
@@ -235,23 +288,28 @@ $progressBar.Size = New-Object System.Drawing.Size(560, 20)
 $progressBar.Style = 'Continuous'
 $form.Controls.Add($progressBar)
 
+
 $statusLabel = New-Object System.Windows.Forms.Label
 $statusLabel.Location = New-Object System.Drawing.Point(10, 430)
 $statusLabel.Size = New-Object System.Drawing.Size(560, 20)
 $form.Controls.Add($statusLabel)
 
+
 # Dictionary to hold printer objects
 $printerMap = @{}
+
 
 # Populates printer list into the GUI
 function Populate-PrinterList {
     $allPrinters = Get-Printer -ComputerName $printServerAddress | Where-Object { $_.Shared -eq $true -and $_.ShareName } | Sort-Object -Property ShareName -Unique
     $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
 
+
     foreach ($printer in $allPrinters) {
         $shareName = $printer.ShareName
         $printerPath = "\\$printServerAddress\$shareName"
         if (-not $ShowAll -and ($installedConnections -contains $printerPath)) { continue }
+
 
         $location = $printer.Location
         $item = New-Object System.Windows.Forms.ListViewItem($shareName)
@@ -262,6 +320,7 @@ function Populate-PrinterList {
     }
 }
 
+
 # Handles the selected printers and starts installation
 function Install-Printers {
     param ([System.Windows.Forms.ListViewItem[]]$selectedItems)
@@ -269,9 +328,11 @@ function Install-Printers {
     Install-PrinterList -printerNames $printerNames
 }
 
+
 # Button actions
 $selectAllButton.Add_Click({ foreach ($item in $listView.Items) { $item.Checked = $true } })
 $unselectAllButton.Add_Click({ foreach ($item in $listView.Items) { $item.Checked = $false } })
+
 
 $installButton.Add_Click({
     $selectedItems = @($listView.Items | Where-Object { $_.Checked })
@@ -286,7 +347,9 @@ $installButton.Add_Click({
     $label.Text = "Installing printers... Please wait."
     $form.Refresh()
 
+
     Install-Printers -selectedItems $selectedItems
+
 
     $installButton.Enabled = $true
     $selectAllButton.Enabled = $true
@@ -295,16 +358,20 @@ $installButton.Add_Click({
     $label.Text = "Installation complete. You can select more printers or close this window."
 })
 
+
 $exitButton.Add_Click({ $form.Close() })
+
 
 # Initialize the form
 Populate-PrinterList
+
 
 if ($AutoInstall -and $listView.Items.Count -gt 0) {
     foreach ($item in $listView.Items) { $item.Checked = $true }
     Install-Printers -selectedItems @($listView.Items)
     $form.Close()
 }
+
 
 $form.Add_Shown({ $form.Activate() })
 [void]$form.ShowDialog()
