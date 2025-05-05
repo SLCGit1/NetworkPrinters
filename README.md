@@ -224,39 +224,42 @@ $form.Controls.Add($serverLabel)
 
 The GUI now includes a visible label showing which print server is being used, making it easier to verify the connection settings, especially when using the `-PrintServer` parameter to override the default.
 
-### 🗒️ Logging
+### 🗒️ Improved Logging with Approved PowerShell Verbs
 ```powershell
-function Log-Message {
+function Write-Log {
     param ([string]$message)
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'u') - $message"
     Write-Output $message
 }
 ```
-The script logs all actions to both a temporary log file (`%TEMP%\PrinterInstallLog.txt`) and the console output, making it easier to troubleshoot issues.
+The script uses the `Write-Log` function (following PowerShell's approved verb standards) to log all actions to both a temporary log file (`%TEMP%\PrinterInstallLog.txt`) and the console output, making it easier to troubleshoot issues.
 
-### 🖨️ Getting Installed Printers
+### 🖨️ Proper Null Comparison for Installed Printers
 ```powershell
 $installedConnections = Get-Printer |
-    Where-Object { $_.ComputerName -ne $null } |
+    Where-Object { $null -ne $_.ComputerName } |
     ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
 ```
-The script builds an array of already installed network printers using UNC paths to avoid duplicate installations.
+The script builds an array of already installed network printers using proper PowerShell null comparison syntax with `$null` on the left side of comparisons for consistent behavior with collections and arrays.
 
-### 🌐 Filtering Printers From Server
+### 🌐 Enhanced Printer List Function with Approved Verbs
 ```powershell
-$allPrinters = Get-Printer -ComputerName $printServer |
-    Where-Object { $_.Shared -eq $true -and $_.ShareName } |
-    Sort-Object -Property ShareName -Unique
+function Update-PrinterList {
+    $allPrinters = Get-Printer -ComputerName $printServerAddress |
+        Where-Object { $_.Shared -eq $true -and $_.ShareName } |
+        Sort-Object -Property ShareName -Unique
+    
+    # Rest of the function...
+}
 ```
-The script fetches all shared printers available on the specified print server, then filters out printers that are already installed (unless `-ShowAll` is used).
+The script now uses the PowerShell-approved verb `Update` for the function that populates the printer list in the GUI, improving script analysis compatibility and adherence to PowerShell best practices.
 
-### 🔄 PS2EXE Parameter Compatibility
-The improved parameter handling ensures consistent behavior between PowerShell script and executable modes, especially for the PrintServer parameter. Key improvements include:
-
-1. Using a single default print server value defined in the param block
-2. Proper detection of execution context (PowerShell script vs. EXE)
-3. No redundant default value in the EXE handling section - it uses the value from the param block if no override is provided
-4. Added server information label to the GUI for better visibility and debugging
+### 🔍 Script Analyzer Compliance
+The script has been updated to follow PowerShell Script Analyzer best practices, including:
+1. Using approved PowerShell verbs for functions
+2. Proper null comparison with `$null` on the left side
+3. Elimination of unused variables
+4. Consistent code formatting
 
 ---
 
@@ -276,7 +279,7 @@ The improved parameter handling ensures consistent behavior between PowerShell s
 To adapt this script to your environment:
 
 1. **Update the Default Print Server**:
-   - Edit line 17 in the script:
+   - Edit line 24 in the script:
    ```powershell
    [string]$PrintServer = "PrintServerFQDN"
    ```
