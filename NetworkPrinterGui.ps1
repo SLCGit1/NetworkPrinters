@@ -2,7 +2,7 @@
 #
 # Created by Jesus Ayala Sarah Lawrence College
 # Modified to work with PS2EXE the script can be convert into an .exe and exit out if no print server connected.
-# version: 6.0
+# version: 6.5
 #
 # Supports GUI and silent operation with optional auto-install and visibility of installed printers
 # Arguments:
@@ -21,7 +21,7 @@ param (
     [switch]$AutoInstall = $false,
     [switch]$ShowAll = $false,
     [switch]$ForceReinstall = $false,
-    [string]$PrintServer = "PrintServerFQDN"
+    [string]$PrintServer = ""PrintServerFQDN"
 )
 
 
@@ -50,8 +50,8 @@ $printServerAddress = $PrintServer
 $logFile = "$env:TEMP\PrinterInstallLog.txt"
 
 
-# Function to log messages to file and output
-function Log-Message {
+# Function to log messages to file and output - fixed verb
+function Write-Log {
     param ([string]$message)
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'u') - $message"
     Write-Output $message
@@ -62,7 +62,8 @@ function Log-Message {
 function Test-PrintServerConnection {
     param ([string]$serverAddress)
     try {
-        $pingResult = Test-Connection -ComputerName $serverAddress -Count 1 -ErrorAction Stop
+        # Removed unused variable
+        Test-Connection -ComputerName $serverAddress -Count 1 -ErrorAction Stop
         return $true
     } catch {
         return $false
@@ -72,18 +73,18 @@ function Test-PrintServerConnection {
 
 # Check print server connection
 if (-not (Test-PrintServerConnection -serverAddress $PrintServer)) {
-    Log-Message "ERROR: Unable to connect to print server $PrintServer. Exiting script."
+    Write-Log "ERROR: Unable to connect to print server $PrintServer. Exiting script."
     exit 1
 }
 
 
 # Log startup and parameters
-Log-Message "Script started with parameters:"
-Log-Message "Silent: $Silent"
-Log-Message "AutoInstall: $AutoInstall"
-Log-Message "ShowAll: $ShowAll"
-Log-Message "ForceReinstall: $ForceReinstall"
-Log-Message "PrintServer: $printServerAddress"
+Write-Log "Script started with parameters:"
+Write-Log "Silent: $Silent"
+Write-Log "AutoInstall: $AutoInstall"
+Write-Log "ShowAll: $ShowAll"
+Write-Log "ForceReinstall: $ForceReinstall"
+Write-Log "PrintServer: $printServerAddress"
 
 
 # Installs the provided list of printers
@@ -93,8 +94,8 @@ function Install-PrinterList {
 
     $printServer = $printServerAddress
     # List of currently installed printer connections
-    $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
-    Log-Message "Installed Connections: $($installedConnections -join ', ')"
+    $installedConnections = Get-Printer | Where-Object { $null -ne $_.ComputerName } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
+    Write-Log "Installed Connections: $($installedConnections -join ', ')"
 
 
     $installedCount = 0
@@ -104,22 +105,22 @@ function Install-PrinterList {
 
     foreach ($printerName in $printerNames) {
         $printerPath = "\\$printServer\$printerName"
-        Log-Message "CMD: rundll32.exe printui.dll,PrintUIEntry /in /n$printerPath"
+        Write-Log "CMD: rundll32.exe printui.dll,PrintUIEntry /in /n$printerPath"
 
 
         if ($installedConnections -contains $printerPath) {
             if ($ForceReinstall) {
                 try {
                     Remove-Printer -Name $printerName -ErrorAction Stop
-                    Log-Message "FORCE REMOVED: $printerName"
+                    Write-Log "FORCE REMOVED: $printerName"
                     Start-Sleep -Seconds 1
                 } catch {
-                    Log-Message ("ERROR removing ${printerName}: $($_.Exception.Message)")
+                    Write-Log ("ERROR removing ${printerName}: $($_.Exception.Message)")
                     $failedCount++
                     continue
                 }
             } else {
-                Log-Message "SKIPPED: $printerName already installed"
+                Write-Log "SKIPPED: $printerName already installed"
                 $skippedCount++
                 continue
             }
@@ -133,23 +134,23 @@ function Install-PrinterList {
 
 
             if ($process.ExitCode -eq 0) {
-                Log-Message "INSTALLED: $printerName"
+                Write-Log "INSTALLED: $printerName"
                 $installedCount++
             } else {
                 throw "Installation returned exit code $($process.ExitCode)"
             }
         } catch {
             $failedCount++
-            Log-Message "FAILED: ${printerName}: $($_.Exception.Message)"
+            Write-Log "FAILED: ${printerName}: $($_.Exception.Message)"
         }
     }
 
 
     # Summary pop-up
-    Log-Message "`nSummary:"
-    Log-Message "Installed: $installedCount"
-    Log-Message "Skipped : $skippedCount"
-    Log-Message "Failed  : $failedCount"
+    Write-Log "`nSummary:"
+    Write-Log "Installed: $installedCount"
+    Write-Log "Skipped : $skippedCount"
+    Write-Log "Failed  : $failedCount"
 
 
     $summaryForm = New-Object System.Windows.Forms.Form
@@ -182,7 +183,7 @@ function Install-PrinterList {
 function Get-UniqueSharedPrinters {
     $printServer = $printServerAddress
     $allPrinters = Get-Printer -ComputerName $printServer | Where-Object { $_.Shared -eq $true -and $_.ShareName } | Sort-Object -Property ShareName -Unique
-    $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
+    $installedConnections = Get-Printer | Where-Object { $null -ne $_.ComputerName } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
 
 
     $uniquePrinters = @()
@@ -197,10 +198,10 @@ function Get-UniqueSharedPrinters {
 
 # Silent mode execution
 if ($Silent) {
-    Log-Message "Running in SILENT mode..."
+    Write-Log "Running in SILENT mode..."
     $printerList = Get-UniqueSharedPrinters
     if ($printerList.Count -eq 0) {
-        Log-Message "No new printers to install."
+        Write-Log "No new printers to install."
         exit 0
     }
     Install-PrinterList -printerNames $printerList
@@ -299,10 +300,10 @@ $form.Controls.Add($statusLabel)
 $printerMap = @{}
 
 
-# Populates printer list into the GUI
-function Populate-PrinterList {
+# Populates printer list into the GUI - fixed verb
+function Update-PrinterList {
     $allPrinters = Get-Printer -ComputerName $printServerAddress | Where-Object { $_.Shared -eq $true -and $_.ShareName } | Sort-Object -Property ShareName -Unique
-    $installedConnections = Get-Printer | Where-Object { $_.ComputerName -ne $null } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
+    $installedConnections = Get-Printer | Where-Object { $null -ne $_.ComputerName } | ForEach-Object { "\\$($_.ComputerName)\$($_.ShareName)".Trim() }
 
 
     foreach ($printer in $allPrinters) {
@@ -363,7 +364,7 @@ $exitButton.Add_Click({ $form.Close() })
 
 
 # Initialize the form
-Populate-PrinterList
+Update-PrinterList
 
 
 if ($AutoInstall -and $listView.Items.Count -gt 0) {
