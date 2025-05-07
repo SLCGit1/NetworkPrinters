@@ -21,7 +21,7 @@ param (
     [switch]$AutoInstall = $false,
     [switch]$ShowAll = $false,
     [switch]$ForceReinstall = $false,
-    [string]$PrintServer = ""PrintServerFQDN"
+    [string]$PrintServer = "PrintServerFQDN"
 )
 
 
