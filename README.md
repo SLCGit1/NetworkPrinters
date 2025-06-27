@@ -303,7 +303,7 @@ MIT License *(or institutional license if required)*
 
 ---
 
-## 👨‍💼 Maintainers
+## 👨‍💼 Maintain and Build
 
 **Sarah Lawrence College – ITS Help Desk Department - Jesus Ayala**
 
