@@ -16,6 +16,8 @@ Printers are compared using their UNC connection path (e.g., `\\print-server\Pri
 
 ---
 
+## 📋 User will need Admin Rights - To allow only the printers the users have access to show. The Basic version of the script will show all printers on SMB so the user can choose, No admin right are need for this.
+
 ![NetworkPrinter](https://github.com/user-attachments/assets/6aa2ac6d-f9f6-484f-810e-ea4b2aef0d44)
 
 ## 🔧 Arguments
